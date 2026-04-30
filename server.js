@@ -25,14 +25,15 @@ function writeJson(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
+function safeRecent(list) {
+  return [...list].sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)).slice(0, 12);
+}
+
 app.post('/api/book-tour', (req, res) => {
   const { property, date, time, name, email, phone, preferredTime, notes } = req.body;
 
   if (!property || !date || !time || !name || !email || !phone) {
-    return res.status(400).json({
-      success: false,
-      message: 'Missing required booking fields.'
-    });
+    return res.status(400).json({ success: false, message: 'Missing required booking fields.' });
   }
 
   const booking = {
@@ -45,6 +46,7 @@ app.post('/api/book-tour', (req, res) => {
     phone,
     preferredTime: preferredTime || '',
     notes: notes || '',
+    status: 'New',
     submittedAt: new Date().toISOString()
   };
 
@@ -52,21 +54,14 @@ app.post('/api/book-tour', (req, res) => {
   bookings.push(booking);
   writeJson(bookingsFile, bookings);
 
-  return res.json({
-    success: true,
-    message: 'Your private tour has been booked successfully.',
-    booking
-  });
+  return res.json({ success: true, message: 'Your private tour has been booked successfully.', booking });
 });
 
 app.post('/api/request-proposal', (req, res) => {
-  const { budget, location, propertyType, timeline } = req.body;
+  const { budget, location, propertyType, timeline, name, email, phone } = req.body;
 
-  if (!budget || !location || !propertyType || !timeline) {
-    return res.status(400).json({
-      success: false,
-      message: 'Missing required proposal fields.'
-    });
+  if (!budget || !location || !propertyType || !timeline || !name || !email || !phone) {
+    return res.status(400).json({ success: false, message: 'Missing required proposal fields.' });
   }
 
   const proposal = {
@@ -75,6 +70,10 @@ app.post('/api/request-proposal', (req, res) => {
     location,
     propertyType,
     timeline,
+    name,
+    email,
+    phone,
+    status: 'New',
     summary: {
       objective: `Acquire a ${propertyType.toLowerCase()} residence in ${location}.`,
       investmentWindow: timeline,
@@ -88,11 +87,31 @@ app.post('/api/request-proposal', (req, res) => {
   proposals.push(proposal);
   writeJson(proposalsFile, proposals);
 
+  return res.json({ success: true, message: 'Proposal request received.', proposal });
+});
+
+app.get('/api/dashboard', (req, res) => {
+  const bookings = readJson(bookingsFile);
+  const proposals = readJson(proposalsFile);
+  const allLeads = [...bookings, ...proposals];
+  const newLeads = allLeads.filter((lead) => lead.status === 'New').length;
+  const pendingFollowUps = allLeads.filter((lead) => !['Booked', 'Proposal Sent'].includes(lead.status)).length;
+
   return res.json({
     success: true,
-    message: 'Proposal request received.',
-    proposal
+    totals: {
+      totalTourRequests: bookings.length,
+      totalProposalRequests: proposals.length,
+      newLeads,
+      pendingFollowUps
+    },
+    recentBookings: safeRecent(bookings),
+    recentProposals: safeRecent(proposals)
   });
+});
+
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
 app.get('*', (req, res) => {
