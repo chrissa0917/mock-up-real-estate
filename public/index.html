@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aurelia Estates | Private Luxury Real Estate Concierge</title>
+    <meta
+      name="description"
+      content="Aurelia Estates is a private luxury real estate platform for high-end buyers and sellers. Book private tours, request personalized proposals, and inquire discreetly."
+    />
+    <link rel="preconnect" href="https://images.unsplash.com" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="hero" id="top">
+      <div class="overlay"></div>
+      <nav class="nav glass-panel">
+        <p class="brand">Aurelia Estates</p>
+        <div>
+          <a href="#listings">Listings</a>
+          <a href="#booking">Book Tour</a>
+          <a href="#proposal">Request Proposal</a>
+          <a href="/dashboard">Dashboard</a>
+        </div>
+      </nav>
+      <div class="hero-content">
+        <h1>Private Access to Exceptional Residences.</h1>
+        <p>Concierge-led real estate experiences tailored for discerning clients.</p>
+        <div class="cta-row">
+          <a href="#booking" class="btn btn-primary">Book a Private Tour</a>
+          <a href="#proposal" class="btn btn-secondary">Request Proposal</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section id="listings" class="section">
+        <h2>Featured Listings</h2>
+        <div id="listingGrid" class="listing-grid"></div>
+      </section>
+
+      <section id="booking" class="section">
+        <h2>Book a Private Tour</h2>
+        <form id="bookingForm" class="glass-panel form-grid">
+          <select name="property" id="bookingProperty" required></select>
+          <input type="date" name="date" required />
+          <input type="time" name="time" required />
+          <input type="text" name="name" placeholder="Full Name" required />
+          <input type="email" name="email" placeholder="Email" required />
+          <input type="tel" name="phone" placeholder="Phone" required />
+          <input type="text" name="preferredTime" placeholder="Preferred time window" />
+          <textarea name="notes" rows="3" placeholder="Notes"></textarea>
+          <button class="btn btn-primary" type="submit">Confirm Tour Request</button>
+        </form>
+        <p id="bookingMessage" class="message"></p>
+      </section>
+
+      <section id="proposal" class="section">
+        <h2>Request Proposal</h2>
+        <form id="proposalForm" class="glass-panel form-grid">
+          <input type="text" name="budget" placeholder="Budget (e.g., $4M - $6M)" required />
+          <input type="text" name="location" placeholder="Preferred Location" required />
+          <input type="text" name="propertyType" placeholder="Property Type" required />
+          <input type="text" name="timeline" placeholder="Timeline" required />
+          <input type="text" name="name" placeholder="Full Name" required />
+          <input type="email" name="email" placeholder="Email" required />
+          <input type="tel" name="phone" placeholder="Phone" required />
+          <button class="btn btn-secondary" type="submit">Generate Proposal</button>
+        </form>
+        <article id="proposalResult" class="proposal-card" hidden></article>
+      </section>
+
+      <section class="section faq" id="faq">
+        <h2>Luxury Real Estate FAQs</h2>
+        <h3>How do I book a private tour?</h3>
+        <p>Select a listing, choose date and time, and submit your contact details in the booking section.</p>
+        <h3>How does proposal generation work?</h3>
+        <p>Provide budget, location, property type, and timeline. We return a structured acquisition plan instantly.</p>
+        <h3>Can I inquire discreetly?</h3>
+        <p>Yes. Every inquiry and proposal is handled through a private, concierge-led workflow.</p>
+      </section>
+    </main>
+
+    <div id="listingModal" class="modal" hidden>
+      <div class="modal-card glass-panel">
+        <button id="closeModal" class="close">×</button>
+        <img id="modalImage" alt="Property" />
+        <h3 id="modalTitle"></h3>
+        <p id="modalPrice"></p>
+        <p id="modalFeatures"></p>
+      </div>
+    </div>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "RealEstateAgent",
+        "name": "Aurelia Estates",
+        "url": "https://example.com",
+        "description": "Private luxury real estate concierge platform for premium buyers and sellers."
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How do I book a private tour?",
+            "acceptedAnswer": {"@type": "Answer", "text": "Choose a property, date, and time, then submit contact details."}
+          },
+          {
+            "@type": "Question",
+            "name": "How does proposal generation work?",
+            "acceptedAnswer": {"@type": "Answer", "text": "Share your budget, location, property type, and timeline to receive a structured proposal summary."}
+          }
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Aurelia Estates Concierge Platform",
+        "potentialAction": [
+          {"@type": "Action", "name": "book private tour"},
+          {"@type": "Action", "name": "request proposal"},
+          {"@type": "Action", "name": "inquire about listing"}
+        ]
+      }
+    </script>
+    <script src="app.js"></script>
+  </body>
+</html>
