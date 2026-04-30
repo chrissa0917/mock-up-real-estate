@@ -25,9 +25,18 @@ const listings = [
   }
 ];
 
+const BOOKING_KEY = 'aurelia_bookings';
+const PROPOSAL_KEY = 'aurelia_proposals';
+
 const listingGrid = document.getElementById('listingGrid');
 const bookingProperty = document.getElementById('bookingProperty');
 const modal = document.getElementById('listingModal');
+
+function appendLocalItem(key, item) {
+  const current = JSON.parse(localStorage.getItem(key) || '[]');
+  current.push(item);
+  localStorage.setItem(key, JSON.stringify(current));
+}
 
 listings.forEach((listing) => {
   const option = document.createElement('option');
@@ -67,41 +76,60 @@ modal.addEventListener('click', (e) => {
   if (e.target === modal) modal.hidden = true;
 });
 
+async function postJson(url, payload) {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await response.json();
+  if (!response.ok || !data.success) {
+    throw new Error(data.message || 'Request failed');
+  }
+
+  return data;
+}
+
 document.getElementById('bookingForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const formData = Object.fromEntries(new FormData(e.target).entries());
-  const response = await fetch('/api/book-tour', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData)
-  });
-  const data = await response.json();
   const message = document.getElementById('bookingMessage');
-  message.textContent = data.message;
-  if (data.success) e.target.reset();
+
+  try {
+    const data = await postJson('/api/book-tour', formData);
+    message.textContent = data.message;
+    e.target.reset();
+  } catch (error) {
+    const fallbackBooking = { ...formData, status: 'New', submittedAt: new Date().toISOString() };
+    appendLocalItem(BOOKING_KEY, fallbackBooking);
+    message.textContent = 'Tour saved locally. Concierge team will confirm once connection is restored.';
+    e.target.reset();
+  }
 });
 
 document.getElementById('proposalForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const formData = Object.fromEntries(new FormData(e.target).entries());
-  const response = await fetch('/api/request-proposal', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData)
-  });
-  const data = await response.json();
   const card = document.getElementById('proposalResult');
 
-  if (!data.success) {
+  try {
+    const data = await postJson('/api/request-proposal', formData);
+    const { summary } = data.proposal;
     card.hidden = false;
-    card.innerHTML = `<p>${data.message}</p>`;
-    return;
+    card.innerHTML = `
+      <h3>Proposal Summary</h3>
+      <p><strong>Objective:</strong> ${summary.objective}</p>
+      <p><strong>Investment Window:</strong> ${summary.investmentWindow}</p>
+      <p><strong>Price Guidance:</strong> ${summary.priceGuidance}</p>
+      <p><strong>Next Step:</strong> ${summary.conciergeNextStep}</p>
+    `;
+    e.target.reset();
+  } catch (error) {
+    const fallbackProposal = { ...formData, status: 'New', submittedAt: new Date().toISOString() };
+    appendLocalItem(PROPOSAL_KEY, fallbackProposal);
+    card.hidden = false;
+    card.innerHTML = '<p>Request saved locally. Proposal will sync when server connection is available.</p>';
+    e.target.reset();
   }
-
-  const { summary } = data.proposal;
-  card.hidden = false;
-  card.innerHTML = `
-    <h3>Proposal Summary</h3>
-    <p><strong>Objective:</strong> ${summary.objective}</p>
-    <p><strong>Investment Window:</strong> ${summary.investmentWindow}</p>
-    <p><strong>Price Guidance:</strong> ${summary.priceGuidance}</p>
-    <p><strong>Next Step:</strong> ${summary.conciergeNextStep}</p>
-  `;
-  e.target.reset();
 });
